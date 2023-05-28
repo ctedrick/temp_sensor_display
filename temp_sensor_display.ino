@@ -25,11 +25,8 @@ U8G2_SH1106_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);
 DeviceAddress thermometerAddress;
 const char DEGREE_SYMBOL[] = { "\xb0" };
 
-const
-
-  float maxTemp = 0;
-
 void setup(void) {
+  Serial.begin(9600);
   tempSensor.begin();
 
   u8g2.begin();
@@ -38,59 +35,41 @@ void setup(void) {
     Serial.println("Device not found!");
   } else {
     Serial.println("Device 0 Address: ");
-    printAddress(thermometerAddress);
+    // printAddress(thermometerAddress);
   }
 
   tempSensor.setResolution(thermometerAddress);
+
+    u8g2.setDrawColor(2);
 }
 
 void loop(void) {
   tempSensor.requestTemperatures();  // Send the command to get temperatures
 
-  float currTemp = tempSensor.getTempFByIndex(0);
+  // float currTemp = tempSensor.getTempFByIndex(0);
+  int currTemp = 69;
 
   u8g2.firstPage();
   do {
+    centerText(u8g2_font_squeezed_b7_tr, "Engine Temp - Fahrenheit", 8);
 
-    u8g2.setFont(u8g2_font_tenthinguys_tr);
-    u8g2.setCursor(0, 9);
-    u8g2.setDrawColor(2);
+    char currTempString[8];
+    itoa(currTemp, currTempString, 10);
+    centerText(u8g2_font_crox4hb_tf, currTempString, 40);
 
-    u8g2.print("--Engine Temp--");
-    // u8g2.print(currTemp);
-
-    // u8g2.setFont(u8g2_font_t0_22_mn );
-    u8g2.setCursor(0, 42.6);
-    u8g2.setDrawColor(2);
-
-    u8g2.print(currTemp);
-    u8g2.print(DEGREE_SYMBOL);
-    u8g2.print("F");
-
-    // u8g2.setCursor(0, 64);
-    // u8g2.setDrawColor(2);
-
-    // u8g2.print(currTemp);
-    // u8g2.print(DEGREE_SYMBOL);
-    // u8g2.print("F");
   } while (u8g2.nextPage());
 
   delay(1000);
 }
 
-void lcdBold(bool aVal) {
-  if (aVal) {
-    u8g2.setFont(u8x8_font_saikyosansbold8_u);  // BOLD
-  } else {
-    u8g2.setFont(u8g2_font_ncenB14_tr);  // NORMAL
-  }
-}
+void centerText(const uint8_t* font, const char* value, int y) {
+  u8g2.setFont(font);
 
-// Serial print device address from the address array - for debugging
+  float sW = u8g2.getStrWidth(value);
+  float dX = u8g2.getDisplayWidth();
 
-void printAddress(DeviceAddress deviceAddress) {
-  for (uint8_t i = 0; i < 8; i++) {
-    if (deviceAddress[i] < 16) Serial.print("0");
-    Serial.print(deviceAddress[i], HEX);
-  }
+  float finalX = (dX - sW) * 0.5;
+
+  u8g2.setCursor(finalX, y);
+  u8g2.println(value);
 }
